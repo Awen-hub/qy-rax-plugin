@@ -1,10 +1,11 @@
 {
   "name": "qy-rax-plugin",
-  "version": "0.0.13",
+  "version": "0.0.21",
   "dependencies": {
     "clean-css": "^5.2.2",
     "css-shortener-2": "^2.1.2",
-    "purgecss": "^4.1.3"
+    "purgecss": "^4.1.3",
+    "terser": "^5.12.1"
   },
   "main": "index.js"
 }

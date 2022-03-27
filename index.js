@@ -5,6 +5,7 @@ const CssShortener = require("css-shortener-2");
 const CleanCSS = require("clean-css");
 const { PurgeCSS } = require("purgecss");
 const ConsolePluginFactory = require("./ConsolePlugin.js");
+const { minify } = require("terser");
 
 const handleError = (err, message) => {
   console.log(message);
@@ -71,6 +72,7 @@ const shortenCSSClassName = async (wxssData, wxssPath, wxmlPath) => {
   }
 };
 
+//收集需要压缩的wxml和wxss,同时压缩json和js
 const findWXMLAndWXSSInFolder = async (filePathSet, dirPath) => {
   try {
     const fileList = await readdir(dirPath);
@@ -89,6 +91,16 @@ const findWXMLAndWXSSInFolder = async (filePathSet, dirPath) => {
           const jsonFilePath = `${dirPath}/${fileName}`;
           const JSONStr = await readFile(jsonFilePath, "utf-8");
           writeFile(jsonFilePath, JSON.stringify(JSON.parse(JSONStr)), {
+            flag: "w+",
+          });
+        } else if (/\.js$/.test(fileName)) {
+          const jsFilePath = `${dirPath}/${fileName}`;
+          let jsContent = await readFile(jsFilePath, "utf-8");
+          jsContent = jsContent.replace(
+            /(_jsx2mpRuntimeWechat|jsx2mp-runtime\/dist\/jsx2mp-runtime\.wechat\.esm)/g,
+            "jsx2mp"
+          );
+          writeFile(jsFilePath, jsContent, {
             flag: "w+",
           });
         } else {
@@ -116,6 +128,7 @@ const compressCSS = async () => {
     shortenCSSClassName(cssContent, wxssPath, wxmlPath);
   });
 };
+let isFirstCompiledSuccess = false;
 
 module.exports = ({ onHook, onGetWebpackConfig }) => {
   rm("es", { recursive: true, force: true }).catch((err) => {
@@ -128,19 +141,19 @@ module.exports = ({ onHook, onGetWebpackConfig }) => {
     compressCSS();
   });
   onHook("after.start.compile", () => {
-    process.stdout.write("---首次编译结束---\n");
-    process.stdout.write("---编译结束---\n");
-    setTimeout(() => {
-      process.stdout.write("---首次编译结束---\n");
-      process.stdout.write("---编译结束---\n");
-    }, 100);
-    setTimeout(() => {
-      process.stdout.write("---首次编译结束---\n");
-      process.stdout.write("---编译结束---\n");
-      if (process.env.once) {
-        process.exit(0);
-      }
-    }, 1000);
+    if (isFirstCompiledSuccess === false) {
+      process.stdout.write("首次编译结束");
+      setTimeout(() => {
+        process.stdout.write("首次编译结束");
+      }, 100);
+      setTimeout(() => {
+        process.stdout.write("首次编译结束");
+        if (process.env.once) {
+          process.exit(0);
+        }
+      }, 1000);
+      isFirstCompiledSuccess = true;
+    }
   });
   onGetWebpackConfig((config) => {
     config.plugin("Console").use(ConsolePluginFactory());

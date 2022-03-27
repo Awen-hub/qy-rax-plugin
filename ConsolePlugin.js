@@ -3,32 +3,20 @@ module.exports = () => {
   const repeatLog = () => {
     if (isFirstCompile) {
       setTimeout(() => {
-        process.stdout.write("---首次编译结束---\n");
+        process.stdout.write("首次编译结束");
         setTimeout(() => {
-          process.stdout.write("---首次编译结束---\n");
+          process.stdout.write("首次编译结束");
           isFirstCompile = false;
         }, 500);
       }, 100);
-      process.stdout.write("---首次编译结束---\n");
-    } else {
-      setTimeout(() => {
-        process.stdout.write("---编译结束---\n");
-        setTimeout(() => {
-          process.stdout.write("---编译结束---\n");
-        }, 100);
-      }, 500);
-      process.stdout.write("---编译结束---\n");
+      process.stdout.write("首次编译结束");
     }
   };
   class ConsolePlugin {
     constructor() {}
     apply(compiler) {
       compiler.hooks.beforeCompile.tapAsync("start", (params, callback) => {
-        if (isFirstCompile) {
-          process.stdout.write("---开始首次编译---\n");
-        } else {
-          process.stdout.write("---开始编译---\n");
-        }
+        process.stdout.write("开始编译");
         callback();
       });
       compiler.hooks.done.tapAsync("done", (params, callback) => {
@@ -45,5 +33,5 @@ module.exports = () => {
       });
     }
   }
-  return ConsolePlugin
+  return ConsolePlugin;
 };
